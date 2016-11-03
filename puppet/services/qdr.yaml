@@ -1,0 +1,83 @@
+heat_template_version: 2016-10-14
+
+description: >
+  Qpid dispatch router service configured with Puppet
+
+parameters:
+  ServiceNetMap:
+    default: {}
+    description: Mapping of service_name -> network name. Typically set
+                 via parameter_defaults in the resource registry.  This
+                 mapping overrides those in ServiceNetMapDefaults.
+    type: json
+  DefaultPasswords:
+    default: {}
+    type: json
+  EndpointMap:
+    default: {}
+    description: Mapping of service endpoint -> protocol. Typically set
+                 via parameter_defaults in the resource registry.
+    type: json
+  # QdrUserName:
+  #   default: guest
+  #   description: The username for Qdr
+  #   type: string
+  # QdrPassword:
+  #   description: The password for Qdr
+  #   type: string
+  #   hidden: true
+  # QdrIPv6:
+  #   default: false
+  #   description: Enable IPv6 in Qdr
+  #   type: boolean
+  MonitoringSubscriptionQdr:
+    default: 'overcloud-qdr'
+    type: string
+
+outputs:
+  role_data:
+    description: Role data for the Qdr role.
+    value:
+      service_name: qpid-dispatch-router
+      monitoring_subscription: {get_param: MonitoringSubscriptionQdr}
+      config_settings:
+        # rabbitmq::default_user: {get_param: RabbitUserName}
+        # rabbitmq::default_pass: {get_param: RabbitPassword}
+        # rabbit_ipv6: {get_param: RabbitIPv6}
+        tripleo.rabbitmq.firewall_rules:
+          '109 qdr':
+            dport:
+              - 5672
+        # rabbitmq::delete_guest_user: false
+        # rabbitmq::wipe_db_on_cookie_change: true
+        # rabbitmq::port: '5672'
+        # rabbitmq::package_source: undef
+        # rabbitmq::repos_ensure: false
+        # rabbitmq::tcp_keepalive: true
+        # rabbitmq_environment:
+        #   RABBITMQ_NODENAME: "rabbit@%{::hostname}"
+        #   RABBITMQ_SERVER_ERL_ARGS: '"+K true +P 1048576 -kernel inet_default_connect_options [{nodelay,true},{raw,6,18,<<5000:64/native>>}] -kernel inet_default_listen_options [{raw,6,18,<<5000:64/native>>}]"'
+        # rabbitmq_kernel_variables:
+        #   inet_dist_listen_min: '25672'
+        #   inet_dist_listen_max: '25672'
+        # rabbitmq_config_variables:
+        #   cluster_partition_handling: 'pause_minority'
+        #   queue_master_locator: '<<"min-masters">>'
+        #   loopback_users: '[]'
+        # rabbitmq::erlang_cookie:
+        #   yaql:
+        #     expression: $.data.passwords.where($ != '').first()
+        #     data:
+        #       passwords:
+        #         - {get_param: RabbitCookie}
+        #         - {get_param: [DefaultPasswords, rabbit_cookie]}
+        # # NOTE: bind IP is found in Heat replacing the network name with the
+        # # local node IP for the given network; replacement examples
+        # # (eg. for internal_api):
+        # # internal_api -> IP
+        # # internal_api_uri -> [IP]
+        # # internal_api_subnet - > IP/CIDR
+        qdr::listener_addr: {get_param: [ServiceNetMap, QdrNetwork]}
+
+      step_config: |
+        include ::tripleo::profile::base::qdr
