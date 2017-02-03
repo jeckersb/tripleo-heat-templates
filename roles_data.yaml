@@ -51,7 +51,7 @@
     - OS::TripleO::Services::NeutronApi
     - OS::TripleO::Services::NeutronCorePlugin
     - OS::TripleO::Services::NeutronOvsAgent
-    - OS::TripleO::Services::RabbitMQ
+    - OS::TripleO::Services::MessagingServer
     - OS::TripleO::Services::HAproxy
     - OS::TripleO::Services::Keepalived
     - OS::TripleO::Services::Memcached

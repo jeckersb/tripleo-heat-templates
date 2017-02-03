@@ -1,0 +1,57 @@
+heat_template_version: ocata
+
+description: >
+  Messaging server abstraction
+
+parameters:
+  ServiceNetMap:
+    default: {}
+    description: Mapping of service_name -> network name. Typically set
+                 via parameter_defaults in the resource registry.  This
+                 mapping overrides those in ServiceNetMapDefaults.
+    type: json
+  DefaultPasswords:
+    default: {}
+    type: json
+  EndpointMap:
+    default: {}
+    description: Mapping of service endpoint -> protocol. Typically set
+                 via parameter_defaults in the resource registry.
+    type: json
+  RpcProvider:
+    default: rabbitmq
+    type: string
+  NotificationProvider:
+    default: rabbitmq
+    type: string
+    
+conditions:
+  use_rabbit:
+    or:
+      - equals:
+        - get_param: RpcProvider
+        - rabbitmq
+      - equals:
+        - get_param: NotificationProvider
+        - rabbitmq
+  use_qdr:
+    or:
+      - equals:
+        - get_param: RpcProvider
+        - qdr
+      - equals:
+        - get_param: NotificationProvider
+        - qdr
+
+resources:
+  rabbitmq:
+    type: OS::TripleO::Services::RabbitMQ
+    condition: use_rabbit
+  qdr:
+    type: OS::TripleO::Services::Qdr
+    condition: use_qdr
+        
+outputs:
+  role_data:
+    description: Role data for the MessagingServer role.
+    value: {}
